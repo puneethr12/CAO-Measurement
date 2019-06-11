@@ -1,0 +1,12 @@
+order-header
+
+import pandas as pd
+d1 = pd.read_csv("ord1.csv")
+d2 = pd.read_csv("ord2.csv")
+
+dfs_dictionary = {"DF1":d1, "DF2":d2}
+da = pd.concat(dfs_dictionary)
+da.drop_duplicates(keep=False, inplace=True)
+
+da.to_csv("missing-order.csv", index=None)
+print(da)

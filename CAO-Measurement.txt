@@ -1,0 +1,341 @@
+# Code to compare the CAO measurement details from different applications(CRP, F&R, URF, SDW and SO)
+
+import pandas as pd
+import numpy as np
+import time
+import datetime
+import logging
+
+#----------------------------------------------------------------------------------------------------------------------
+# validating input files for its columns
+#----------------------------------------------------------------------------------------------------------------------
+date = datetime.datetime.today().strftime('%m/%d/%y')
+datestr = datetime.datetime.now().strftime('%Y_%m_%d %H%M%S') 
+
+logging.basicConfig(filename="CAOlogfile" + datestr + ".log",  format='%(asctime)s %(message)s', level=logging.INFO)
+
+#read input files
+d1 = pd.read_csv("FNRDATA.csv")
+d2 = pd.read_csv("CRPDATA.csv")
+d11 = pd.read_csv("SDWDATA.csv")
+d21 = pd.read_csv("URFDATA.csv")
+d31 = pd.read_csv("SODATA.csv") 
+
+#   CRP  ----------------------------------------------------------------------------------------------------------------------
+
+try:
+    count_crp_rows = d2.shape[0]
+    col = len(d2.columns)
+    if col == 5:
+        print('number of columns received in CRP is correct')
+        logging.info('CRP read: Number of Columns received in CRP are correct:' + str(col))
+        
+    else:
+        raise ValueError ('Input Error. Expected number of columns incorrect in CRP:' + str(col))            
+except ValueError as err:
+    print("ValueError: {0}\n".format(err))
+    logging.error('Input Error. Expected number of columns incorrect in CRP:' + str(col))
+    raise
+
+finally:
+        print("executing finally clause of number of Columns Validation\n")
+        print("Number of rows in CRP file is:" + str(count_crp_rows))
+        logging.info("Number of rows in CRP file is:" + str(count_crp_rows))
+        logging.info('executing finally clause of number of Columns Validation in CRP\n')
+                
+        
+#  FNR   ----------------------------------------------------------------------------------------------------------------------
+        
+try:
+    count_fnr_rows = d2.shape[0]
+    Fcol = len(d1.columns)
+    if Fcol == 2:
+        print('number of columns received in FNR is correct')
+        logging.info('FNR read: Number of Columns received in FNR are correct:' + str(Fcol))
+        
+    else:
+        raise ValueError ('Input Error. Expected number of columns incorrect in FNR:'+  str(Fcol))            
+except ValueError as err:
+    print("ValueError: {0}\n".format(err))
+    logging.error('Input Error. Expected number of columns incorrect in FNR:' + str(Fcol))
+    raise
+
+finally:
+        print("executing finally clause of number of Columns Validation\n")
+        print("Number of rows in FNR file is:" + str(count_fnr_rows))
+        logging.info("Number of rows in FNR file is:" + str(count_fnr_rows))
+        logging.info('executing finally clause of number of Columns Validation in FNR\n')
+        
+#  SDW  ----------------------------------------------------------------------------------------------------------------------        
+        
+try:
+    count_sdw_rows = d2.shape[0]
+    SDcol = len(d11.columns)
+    if SDcol == 4:
+        print('number of columns received in SDW is correct')
+        logging.info('SDW read: Number of Columns received in SDW are correct:' + str(SDcol))
+        
+    else:
+        raise ValueError ('Input Error. Expected number of columns incorrect in SDW:'+  str(SDcol))            
+except ValueError as err:
+    print("ValueError: {0}\n".format(err))
+    logging.error('Input Error. Expected number of columns incorrect in SDW:' + str(SDcol))
+    raise
+
+finally:
+        print("executing finally clause of number of Columns Validation\n")
+        print("Number of rows in SDW file is:" + str(count_sdw_rows))
+        logging.info("Number of rows in SDW file is:" + str(count_sdw_rows))
+        logging.info('executing finally clause of number of Columns Validation in SDW\n')        
+
+#  URF  ----------------------------------------------------------------------------------------------------------------------        
+        
+try:
+    count_urf_rows = d2.shape[0]
+    Ucol = len(d21.columns)
+    if Ucol == 3:
+        print('number of columns received in URF is correct')
+        logging.info('URF read: Number of Columns received in URF are correct:' + str(Ucol))
+        
+    else:
+        raise ValueError ('Input Error. Expected number of columns incorrect in URF:'+  str(Ucol))            
+except ValueError as err:
+    print("ValueError: {0}\n".format(err))
+    logging.error('Input Error. Expected number of columns incorrect in URF:' + str(Ucol))
+    raise
+
+finally:
+        print("executing finally clause of number of Columns Validation\n")
+        print("Number of rows in URF file is:" + str(count_urf_rows))
+        logging.info("Number of rows in URF file is:" + str(count_urf_rows))
+        logging.info('executing finally clause of number of Columns Validation in URF\n')       
+        
+
+#  Store Office  ----------------------------------------------------------------------------------------------------------------------        
+        
+try:
+    count_so_rows = d2.shape[0]
+    Scol = len(d31.columns)
+    if Scol == 6:
+        print('number of columns received in SO is correct')
+        logging.info('SO read: Number of Columns received in SO are correct:' + str(Scol))
+        
+    else:
+        raise ValueError ('Input Error. Expected number of columns incorrect in SO:'+  str(Scol))            
+except ValueError as err:
+    print("ValueError: {0}\n".format(err))
+    logging.error('Input Error. Expected number of columns incorrect in SO:' + str(Scol))
+    raise
+
+finally:
+        print("executing finally clause of number of Columns Validation\n")
+        print("Number of rows in SO file is:" + str(count_so_rows))
+        logging.info("Number of rows in SO file is:" + str(count_so_rows))
+        logging.info('executing finally clause of number of Columns Validation in SO\n')  
+        
+#----------------------------------------------------------------------------------------------------------------------
+#----------------------------------------- Comparing CRP and F&R files--------------------------------------
+#----------------------------------------------------------------------------------------------------------------------
+
+# Read CRP and F&R files
+#d1 = pd.read_csv("FNRDATA.csv")
+#d2 = pd.read_csv("CRPDATA.csv") 
+
+# Rename store columns in F&R data and filtering out only CAO possible ('J') BNRs
+d1.rename(columns={'F-STORE':'STORE'},inplace=True)
+d3 = d2[d2.CAOPOS == 'J']
+
+# Drop unused columns for CRP and F&R comparison
+d4 = d3.drop(['BNR', 'CAOPOS', 'CAOACT'], axis=1)
+d4.rename(columns={'P-BNR':'BNR'},inplace=True)
+
+#Sorting the both CRP and F&R dataframes
+d4.sort_values(by=['STORE', 'BNR'])
+d1.sort_values(by=['STORE', 'BNR'])
+
+#merging both CRP & F&R dataframes
+df_crp = d4.merge(d1.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+df_fnr = d1.merge(d4.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+#Filtering out records present only in CRP and not in F&R
+crp = df_crp[df_crp._merge == 'left_only']
+crpf = crp.drop(['_merge'], axis=1)
+
+# Calculating count of rows in pos not fnr
+count_crpf = crpf.shape[0]
+
+print("Number of rows in POS not FNR is:" + str(count_crpf))
+logging.info("Number of rows in POS not FNR is:" + str(count_crpf))
+
+#Filtering out records present only in F&R and not in CRP
+fnr = df_fnr[df_fnr._merge == 'left_only']
+fnrc = fnr.drop(['_merge'], axis=1)
+
+# Calculating count of rows in fnr not pos
+count_fnrc = fnrc.shape[0]
+
+print("Number of rows in FNR & not POS is:" + str(count_fnrc))
+logging.info("Number of rows in FNR & not POS is:" + str(count_fnrc))
+
+#writing filtered recods to csv files.
+crpf.to_csv("inposnotfnr.csv", index=None)
+fnrc.to_csv("infnrnotcrp.csv", index=None)
+
+
+#------------------------------------------------------------------------------------------------------------------------------
+# comparing CRP and SDW data
+#------------------------------------------------------------------------------------------------------------------------------
+# reading SDW file
+#d11 = pd.read_csv("SDWDATA.csv") 
+
+#Filtering out SDW data with aktu <9
+d12 = d11[d11.AKTU != int(9)]
+
+#Filtering out SDW data from date less than or equal to current date
+d12['FROMDAT'] = pd.to_datetime(d12['FROMDAT'])
+#d13 = d12[d12.FROMDAT < date]
+
+mask = (d12['FROMDAT'] < date) 
+d13  = d12.loc[mask]
+
+# Dropping unused columns from SDW data
+d13 = d13.drop(['AKTU', 'FROMDAT'], axis=1)
+
+d13.sort_values(by=['STORE', 'BNR'])
+
+#merging both CRP & SDW dataframes
+df_crpsdw = d4.merge(d13.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+df_sdwcrp = d13.merge(d4.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+#Filtering out records present only in CRP and not in SDW
+crpsd = df_crpsdw[df_crpsdw._merge == 'left_only']
+crps = crpsd.drop(['_merge'], axis=1)
+
+# Calculating count of rows in pos & not in sdw
+count_crps = crps.shape[0]
+
+print("Number of rows in POS not SDW is:" + str(count_crps))
+logging.info("Number of rows in POS not SDW is:" + str(count_crps))
+
+#Filtering out records present only in SDW and not in CRP
+sdwcr = df_sdwcrp[df_sdwcrp._merge == 'left_only']
+sdwc = sdwcr.drop(['_merge'], axis=1)
+
+# Calculating count of rows in sdw & not in pos
+count_sdwc = sdwc.shape[0]
+
+print("Number of rows in SDW not POS is:" + str(count_sdwc))
+logging.info("Number of rows in SDW not POS is:" + str(count_sdwc))
+
+#writing filtered recods to csv files.
+crps.to_csv("inposnotsdw.csv", index=None)
+sdwc.to_csv("insdwnotpos.csv", index=None)
+
+
+#------------------------------------------------------------------------------------------------------------------------------
+# comparing CRP and URF data
+#------------------------------------------------------------------------------------------------------------------------------
+
+# reading URF file
+#d21 = pd.read_csv("URFDATA.csv") 
+
+#Filtering out only CAO possible ('J') data from URF files
+d22 = d21[d21.CAOPOS == 'J']
+
+#dropping unsed columns in both dataframes URF(d23) and CRP(dc3)
+d23 = d22.drop(['CAOPOS'], axis=1)
+
+dc3 = d3.drop(['CAOPOS', 'CAOACT', 'P-BNR'], axis=1)
+
+dc3.sort_values(by=['STORE', 'BNR'])
+
+#merging both CRP & URF dataframes
+df_crpurf = dc3.merge(d23.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+df_urfcrp = d23.merge(dc3.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+#Filtering out records present only in CRP and not in URF
+crpur = df_crpurf[df_crpurf._merge == 'left_only']
+crpu = crpur.drop(['_merge'], axis=1)
+
+# Calculating count of rows in crp & not in urf
+count_crpu = crpu.shape[0]
+
+print("Number of rows in POS & not in URF  is:" + str(count_crpu))
+logging.info("Number of rows in POS & not in URF  is:" + str(count_crpu))
+
+#Filtering out records present only in URF and not in CRP
+urfcr = df_urfcrp[df_urfcrp._merge == 'left_only']
+urfc = urfcr.drop(['_merge'], axis=1)
+
+# Calculating count of rows in urf & not in crp
+count_urfc = urfc.shape[0]
+
+print("Number of rows in URF & not in POS is:" + str(count_urfc))
+logging.info("Number of rows in URF & not in POS is:" + str(count_urfc))
+
+#writing filtered recods to csv files.
+crpu.to_csv("inposnoturf.csv", index=None)
+urfc.to_csv("inurfnotpos.csv", index=None)
+
+#------------------------------------------------------------------------------------------------------------------------------
+# comparing CRP and SO data
+#------------------------------------------------------------------------------------------------------------------------------
+
+# reading SO file
+#d31 = pd.read_csv("SODATA.csv") 
+
+#Filtering out only CAO possible ('1') data from SO files
+d32 = d31[d31.CAO_POSSIBLE == 1]
+
+d34 = d31[d31.AKTU != 8]
+
+#dropping unsed columns in dataframes SO (d33 & d35) 
+d33 = d32.drop(['BNR', 'CAO_ACTIVE', 'CAO_POSSIBLE', 'AKTU'], axis=1)
+d33.rename(columns={'P-BNR':'BNR'},inplace=True)
+
+d35 = d34.drop(['BNR', 'CAO_ACTIVE', 'CAO_POSSIBLE', 'AKTU'], axis=1)
+d35.rename(columns={'P-BNR':'BNR'},inplace=True)
+
+d35.sort_values(by=['STORE', 'BNR'])
+
+#merging both CRP & SO dataframes
+df_crpso = d4.merge(d33.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+df_socrp = d35.merge(d4.drop_duplicates(), on=['STORE','BNR'], 
+                   how='left', indicator=True)
+
+#Filtering out records present only in CRP and not in SO
+crpso = df_crpso[df_crpso._merge == 'left_only']
+crpst = crpso.drop(['_merge'], axis=1)
+
+# Calculating count of rows in pos & not in SO
+count_crpst = crpst.shape[0]
+
+print("Number of rows in POS & not in SO is:" + str(count_crpst))
+logging.info("Number of rows in POS & not in SO is:" + str(count_crpst))
+
+#Filtering out records present only in SO and not in crp
+socr = df_socrp[df_socrp._merge == 'left_only']
+soc = socr.drop(['_merge'], axis=1)
+
+# Calculating count of rows in SO & not in POS
+count_soc = soc.shape[0]
+
+print("Number of rows in SO & not in POS is:" + str(count_soc))
+logging.info("Number of rows in SO & not in POS is:" + str(count_soc))
+    
+#writing filtered recods to csv files.
+crpst.to_csv("inposnotso.csv", index=None)
+soc.to_csv("insonotpos.csv", index=None)
+
+    
